@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────
-//  PEAK 22° — script.js
+//  DUCK.BRS — script.js
 //  Shared across index.html & photos.html
 // ─────────────────────────────────────────
 
@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (cursor && ring) {
     let mx = 0, my = 0, rx = 0, ry = 0;
 
-    // Hide until mouse moves so it doesn't sit at 0,0 on load
     cursor.style.opacity = '0';
     ring.style.opacity   = '0';
 
@@ -22,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
       cursor.style.left    = mx + 'px';
       cursor.style.top     = my + 'px';
       cursor.style.opacity = '1';
-      ring.style.opacity   = '0.6';
+      ring.style.opacity   = '0.5';
     });
 
     function animateRing() {
@@ -72,8 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // ─── Hero Logo Glitch on Hover (index only) ─────
-  // No invert — logo uses mix-blend-mode:screen to drop the white bg.
-  // Glitch = translate + chromatic aberration via drop-shadow only.
   const heroLogo = document.getElementById('heroLogo');
 
   if (heroLogo) {
@@ -90,16 +87,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const y = (Math.random() - 0.5) * 6;
         heroLogo.style.transform = `translate(${x}px, ${y}px)`;
         heroLogo.style.filter    =
-          `drop-shadow(${x * 1.5}px 0 0 rgba(42,191,191,0.9)) ` +
+          `drop-shadow(${x * 1.5}px 0 0 rgba(200,168,75,0.9)) ` +
           `drop-shadow(${-x * 1.5}px 0 0 rgba(255,255,255,0.5)) ` +
-          `drop-shadow(0 0 24px rgba(42,191,191,0.4))`;
+          `drop-shadow(0 0 24px rgba(200,168,75,0.5))`;
 
         frames++;
         if (frames > 10) {
           clearInterval(glitch);
           heroLogo.style.transition = 'transform 0.3s ease, filter 0.3s ease';
           heroLogo.style.transform  = '';
-          heroLogo.style.filter     = 'drop-shadow(0 0 50px rgba(42,191,191,0.35))';
+          heroLogo.style.filter     = 'drop-shadow(0 0 40px rgba(200,168,75,0.25))';
           glitching = false;
         }
       }, 55);
@@ -142,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
-  // ─── Lightbox (photos only) ──────────────
+  // ─── Lightbox (photos only — legacy grid) ──────────────
   const lightbox      = document.getElementById('lightbox');
   const lightboxImg   = document.getElementById('lightboxImg');
   const lightboxClose = document.getElementById('lightboxClose');
