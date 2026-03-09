@@ -1,68 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DUCK.BRS — Photos</title>
-  <link rel="icon" type="image/png" href="/duck/assets/ducklogo.JPG">
-  <meta name="description" content="DUCK.BRS photo gallery — moments from Bristol." />
-  <!-- Google tag (gtag.js) -->
+  <link rel="icon" type="image/jpeg" href="/duck/assets/ducklogo.JPG">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-GQGT6JKJF8"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G-GQGT6JKJF8');
-  </script>
+  <script>window.dataLayer = window.dataLayer || []; function gtag() { dataLayer.push(arguments); } gtag('js', new Date()); gtag('config', 'G-GQGT6JKJF8');</script>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/duck/styles.css" />
 </head>
-<body>
 
+<body>
   <div class="cursor" id="cursor"></div>
   <div class="cursor-ring" id="cursorRing"></div>
-
-  <!-- NAV -->
+  <div class="side-drawer-overlay" id="drawerOverlay"></div>
+  <aside class="side-drawer" id="sideDrawer">
+    <nav class="drawer-nav-links">
+      <a href="/duck/home/" class="drawer-link">Home <span class="link-num">01</span></a>
+      <a href="/duck/photos/" class="drawer-link active">Photos <span class="link-num">02</span></a>
+      <a href="/duck/community/" class="drawer-link skeleton">Community <span class="link-num">03</span></a>
+    </nav>
+    <div class="drawer-footer">
+      <p>DUCK.BRS &middot; Bristol &middot; BS1</p>
+    </div>
+  </aside>
   <nav>
-    <a class="nav-logo" href="/duck/home/">
-      <img src="/duck/assets/ducklogo.JPG" alt="DUCK.BRS">
-    </a>
-    <div class="nav-tabs">
-      <a href="/duck/home/">Home</a>
-      <a href="/duck/photos/" class="active">Photos</a>
+    <a class="nav-wordmark" href="/duck/home/">DUCK<span>.BRS</span></a>
+    <div class="nav-right">
+      <a class="nav-instagram" href="https://www.instagram.com/duck.brs/" target="_blank" rel="noopener"
+        aria-label="Instagram">
+        <svg viewBox="0 0 24 24">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+          <circle cx="12" cy="12" r="4.5" />
+          <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none" />
+        </svg>
+      </a>
+      <button class="nav-burger" id="navBurger" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
   </nav>
-
-  <!-- PAGE HERO -->
   <div class="photos-hero">
     <div>
       <div class="section-label">Archive</div>
       <h1 class="section-title reveal">The<br>Gallery</h1>
     </div>
   </div>
-
-  <!-- SINGLE TAB BAR -->
   <div class="gallery-filters" id="filters">
     <button class="filter-btn active" data-filter="events">Events</button>
-    <!-- More tabs when ready:
-    <button class="filter-btn" data-filter="crowd">Crowd</button>
-    <button class="filter-btn" data-filter="artists">Artists</button>
-    <button class="filter-btn" data-filter="venue">Venue</button>
-    -->
   </div>
-
-  <!-- EVENTS TAB CONTENT -->
   <div class="events-gallery-page" id="tab-events">
     <div id="collectionsRoot"></div>
   </div>
-
-  <!-- EVENT VIEWER -->
   <div class="event-viewer" id="eventViewer">
     <div class="event-viewer-header">
       <button class="event-viewer-back" id="viewerBack">
-        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        All Events
+        <svg viewBox="0 0 24 24">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>All Events
       </button>
       <div class="event-viewer-title">
         <span class="event-viewer-name" id="viewerName"></span>
@@ -72,74 +69,43 @@
     </div>
     <div class="event-viewer-grid" id="viewerGrid"></div>
   </div>
-
-  <!-- LIGHTBOX -->
   <div class="lightbox" id="lightbox">
-    <button class="lightbox-close" id="lightboxClose">✕ Close</button>
-    <button class="lightbox-nav lightbox-prev" id="lightboxPrev">
-      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
+    <button class="lightbox-close" id="lightboxClose">&#10005; Close</button>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev"><svg viewBox="0 0 24 24">
+        <polyline points="15 18 9 12 15 6" />
+      </svg></button>
     <div id="lightboxContent"></div>
-    <button class="lightbox-nav lightbox-next" id="lightboxNext">
-      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-    <div class="lightbox-counter">
-      <span id="lightboxCurrent">1</span> / <span id="lightboxTotal">1</span>
-    </div>
+    <button class="lightbox-nav lightbox-next" id="lightboxNext"><svg viewBox="0 0 24 24">
+        <polyline points="9 18 15 12 9 6" />
+      </svg></button>
+    <div class="lightbox-counter"><span id="lightboxCurrent">1</span> / <span id="lightboxTotal">1</span></div>
   </div>
-
-  <!-- FOOTER -->
   <footer>
     <div class="footer-inner">
       <div>
-        <img src="/duck/assets/ducklogo.JPG" alt="DUCK.BRS">
+        <a class="footer-wordmark" href="/duck/home/">DUCK<span>.BRS</span></a>
         <p class="footer-desc">Bristol's underground party collective. Music, culture, and community since day one.</p>
       </div>
       <div class="footer-col">
         <h4>Navigate</h4>
-        <a href="/duck/home/">Home</a>
-        <a href="/duck/photos/">Photos</a>
-        <a href="#">Events</a>
-        <a href="#">Mixes</a>
+        <a href="/duck/home/">Home</a><a href="/duck/photos/">Photos</a>
+        <a href="/duck/community/">Community</a><a href="#">Events</a><a href="#">Mixes</a>
       </div>
       <div class="footer-col">
         <h4>Contact</h4>
         <a href="mailto:n8warneck@gmail.com">n8warneck@gmail.com</a>
-        <a href="https://www.instagram.com/peak22degrees/" target="_blank" rel="noopener">@duck</a>
+        <a href="https://www.instagram.com/duck.brs/" target="_blank" rel="noopener">@duck.brs</a>
         <a href="https://ra.co" target="_blank" rel="noopener">RA Profile</a>
-        <p>Bristol, UK 🇬🇧</p>
+        <p>Bristol, UK</p>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 DUCK.BRS. All rights reserved.</span>
-      <span>Bristol, England</span>
+      <span>&copy; 2026 DUCK.BRS. All rights reserved.</span><span>Bristol, England</span>
     </div>
   </footer>
-
   <script src="/duck/script.js"></script>
-
   <script>
-  // ═══════════════════════════════════════════════════════════════
-  //  ██████╗ EVENTS CONFIG — EDIT THIS TO ADD YOUR PHOTOS/VIDEOS ██████╗
-  //
-  //  Each object = one event collection card.
-  //
-  //  PHOTO entry:
-  //    { src: '/duck/assets/photos/...jpg', label: 'caption' }
-  //
-  //  VIDEO entry — just add  type: 'video'  and optionally a poster image:
-  //    { src: '/duck/assets/photos/...mp4', label: 'caption', type: 'video' }
-  //    { src: '/duck/assets/photos/...mp4', label: 'caption', type: 'video', poster: '/duck/assets/photos/...jpg' }
-  //
-  //  Supported video formats: .mp4  .webm  .mov
-  //  The FIRST item in photos[] is always the collection cover — use a photo for best results.
-  //
-  //  TO ADD AN EVENT: copy a block, paste it, fill in details.
-  //  TO HIDE AN EVENT: wrap the block in /* ... */
-  //
-  // ═══════════════════════════════════════════════════════════════
-
-  const EVENTS = [
+    const EVENTS = [
 
     // ── EVENT 1 ──────────────────────────────────────────────────
     {
@@ -235,236 +201,129 @@
         { src: '/duck/assets/photos/6-MAR-2026-PARTY/06mar2026party-31.JPG', label: 'Your caption' },
       ]
     },
+    ];
 
-  ];
+    (function () {
+      let currentPhotos = [], lightboxIndex = 0;
+      const collectionsRoot = document.getElementById('collectionsRoot'),
+        eventViewer = document.getElementById('eventViewer'),
+        viewerBack = document.getElementById('viewerBack'),
+        viewerName = document.getElementById('viewerName'),
+        viewerDate = document.getElementById('viewerDate'),
+        viewerCount = document.getElementById('viewerCount'),
+        viewerGrid = document.getElementById('viewerGrid'),
+        lightbox = document.getElementById('lightbox'),
+        lightboxContent = document.getElementById('lightboxContent'),
+        lightboxClose = document.getElementById('lightboxClose'),
+        lightboxPrev = document.getElementById('lightboxPrev'),
+        lightboxNext = document.getElementById('lightboxNext'),
+        lightboxCurrent = document.getElementById('lightboxCurrent'),
+        lightboxTotal = document.getElementById('lightboxTotal'),
+        cursor = document.getElementById('cursor');
 
-  // ═══════════════════════════════════════════════════════════════
-  //  DO NOT EDIT BELOW THIS LINE
-  // ═══════════════════════════════════════════════════════════════
+      function isVideo(item) { return item.type === 'video'; }
 
-  (function() {
-
-    let currentPhotos = [];
-    let lightboxIndex = 0;
-
-    const collectionsRoot = document.getElementById('collectionsRoot');
-    const eventViewer     = document.getElementById('eventViewer');
-    const viewerBack      = document.getElementById('viewerBack');
-    const viewerName      = document.getElementById('viewerName');
-    const viewerDate      = document.getElementById('viewerDate');
-    const viewerCount     = document.getElementById('viewerCount');
-    const viewerGrid      = document.getElementById('viewerGrid');
-    const lightbox        = document.getElementById('lightbox');
-    const lightboxContent = document.getElementById('lightboxContent');
-    const lightboxClose   = document.getElementById('lightboxClose');
-    const lightboxPrev    = document.getElementById('lightboxPrev');
-    const lightboxNext    = document.getElementById('lightboxNext');
-    const lightboxCurrent = document.getElementById('lightboxCurrent');
-    const lightboxTotal   = document.getElementById('lightboxTotal');
-    const cursor          = document.getElementById('cursor');
-
-    function isVideo(item) {
-      return item.type === 'video';
-    }
-
-    // ── Build collection cover cards ──────────────────────────
-    const grid = document.createElement('div');
-    grid.className = 'collections-grid';
-
-    EVENTS.forEach((event, idx) => {
-      const card = document.createElement('div');
-      card.className = 'collection-card reveal';
-
-      const coverSrc = event.photos.length > 0 ? event.photos[0].src : '';
-      const videoCount = event.photos.filter(isVideo).length;
-      const photoCount = event.photos.length - videoCount;
-
-      let metaParts = [];
-      if (photoCount > 0) metaParts.push(`${photoCount} photo${photoCount !== 1 ? 's' : ''}`);
-      if (videoCount > 0) metaParts.push(`${videoCount} video${videoCount !== 1 ? 's' : ''}`);
-      const metaStr = metaParts.join(' · ');
-
-      card.innerHTML = `
-        <img src="${coverSrc}" alt="${event.name}" loading="lazy">
+      const grid = document.createElement('div');
+      grid.className = 'collections-grid';
+      EVENTS.forEach((event, idx) => {
+        const card = document.createElement('div');
+        card.className = 'collection-card reveal';
+        const coverSrc = event.photos.length > 0 ? event.photos[0].src : '';
+        const vc = event.photos.filter(isVideo).length, pc = event.photos.length - vc;
+        let mp = [];
+        if (pc > 0) mp.push(`${pc} photo${pc !== 1 ? 's' : ''}`);
+        if (vc > 0) mp.push(`${vc} video${vc !== 1 ? 's' : ''}`);
+        card.innerHTML = `<img src="${coverSrc}" alt="${event.name}" loading="lazy">
         <div class="collection-card-info">
           <div class="collection-card-index">${String(idx + 1).padStart(2, '0')}</div>
           <div class="collection-card-name">${event.name}</div>
-          <div class="collection-card-meta">
-            <span>${event.date}</span>
-            <span>·</span>
-            <span>${metaStr}</span>
-          </div>
+          <div class="collection-card-meta"><span>${event.date}</span><span>·</span><span>${mp.join(' · ')}</span></div>
         </div>
-        <div class="collection-card-arrow">
-          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      `;
-
-      card.addEventListener('click', () => openEventViewer(event));
-      if (cursor) {
-        card.addEventListener('mouseenter', () => cursor.classList.add('expand'));
-        card.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
-      }
-      grid.appendChild(card);
-    });
-
-    collectionsRoot.appendChild(grid);
-
-    const revealObs = new IntersectionObserver((entries) => {
-      entries.forEach((entry, i) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => entry.target.classList.add('visible'), i * 100);
-          revealObs.unobserve(entry.target);
-        }
+        <div class="collection-card-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>`;
+        card.addEventListener('click', () => openEventViewer(event));
+        if (cursor) { card.addEventListener('mouseenter', () => cursor.classList.add('expand')); card.addEventListener('mouseleave', () => cursor.classList.remove('expand')); }
+        grid.appendChild(card);
       });
-    }, { threshold: 0, rootMargin: '0px 0px -40px 0px' });
-    grid.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+      collectionsRoot.appendChild(grid);
 
-    // ── Open event viewer ─────────────────────────────────────
-    function openEventViewer(event) {
-      currentPhotos = event.photos;
+      const ro = new IntersectionObserver((entries) => { entries.forEach((e, i) => { if (e.isIntersecting) { setTimeout(() => e.target.classList.add('visible'), i * 100); ro.unobserve(e.target); } }); }, { threshold: 0, rootMargin: '0px 0px -40px 0px' });
+      grid.querySelectorAll('.reveal').forEach(el => ro.observe(el));
 
-      viewerName.textContent = event.name;
-      viewerDate.textContent = event.date;
+      function openEventViewer(event) {
+        currentPhotos = event.photos;
+        viewerName.textContent = event.name; viewerDate.textContent = event.date;
+        const vc = event.photos.filter(isVideo).length, pc = event.photos.length - vc;
+        let cp = []; if (pc > 0) cp.push(`${pc} photo${pc !== 1 ? 's' : ''}`); if (vc > 0) cp.push(`${vc} video${vc !== 1 ? 's' : ''}`);
+        viewerCount.textContent = cp.join(' · ');
+        viewerGrid.innerHTML = '';
+        event.photos.forEach((item, i) => {
+          const tile = document.createElement('div'); tile.className = 'event-viewer-item';
+          if (isVideo(item)) {
+            tile.innerHTML = `<div class="video-thumb"><video src="${item.src}"${item.poster ? ` poster="${item.poster}"` : ''} preload="metadata" muted playsinline></video><div class="video-play-badge"><svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg></div><span class="video-type-badge">Video</span></div><div class="overlay"></div>`;
+          } else {
+            tile.innerHTML = `<img src="${item.src}" alt="${item.label || event.name}" loading="lazy"><div class="overlay"></div>`;
+          }
+          tile.addEventListener('click', () => openLightbox(i));
+          if (cursor) { tile.addEventListener('mouseenter', () => cursor.classList.add('expand')); tile.addEventListener('mouseleave', () => cursor.classList.remove('expand')); }
+          viewerGrid.appendChild(tile);
+        });
+        eventViewer.classList.add('open'); eventViewer.scrollTop = 0; document.body.style.overflow = 'hidden';
+      }
 
-      const videoCount = event.photos.filter(isVideo).length;
-      const photoCount = event.photos.length - videoCount;
-      let countParts = [];
-      if (photoCount > 0) countParts.push(`${photoCount} photo${photoCount !== 1 ? 's' : ''}`);
-      if (videoCount > 0) countParts.push(`${videoCount} video${videoCount !== 1 ? 's' : ''}`);
-      viewerCount.textContent = countParts.join(' · ');
+      function closeEventViewer() { eventViewer.classList.remove('open'); document.body.style.overflow = ''; viewerGrid.querySelectorAll('video').forEach(v => v.pause()); }
+      viewerBack.addEventListener('click', closeEventViewer);
 
-      viewerGrid.innerHTML = '';
+      function openLightbox(index) { lightboxIndex = index; lightboxTotal.textContent = currentPhotos.length; showLightboxItem(index); lightbox.classList.add('open'); }
 
-      event.photos.forEach((item, i) => {
-        const tile = document.createElement('div');
-        tile.className = 'event-viewer-item';
-
+      function showLightboxItem(index) {
+        lightboxIndex = index; const item = currentPhotos[index];
+        const pv = lightboxContent.querySelector('video'); if (pv) { pv.pause(); pv.src = ''; }
+        lightboxContent.innerHTML = '';
         if (isVideo(item)) {
-          tile.innerHTML = `
-            <div class="video-thumb">
-              <video src="${item.src}" ${item.poster ? `poster="${item.poster}"` : ''} preload="metadata" muted playsinline></video>
-              <div class="video-play-badge">
-                <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
-              </div>
-              <span class="video-type-badge">Video</span>
-            </div>
-            <div class="overlay"></div>
-          `;
+          lightbox.classList.add('video-mode');
+          const wrap = document.createElement('div'); wrap.className = 'lightbox-video-wrap';
+          const vid = document.createElement('video'); vid.src = item.src; vid.controls = true; vid.autoplay = true; vid.playsinline = true;
+          if (item.poster) vid.poster = item.poster; wrap.appendChild(vid); lightboxContent.appendChild(wrap);
         } else {
-          tile.innerHTML = `
-            <img src="${item.src}" alt="${item.label || event.name}" loading="lazy">
-            <div class="overlay"></div>
-          `;
+          lightbox.classList.remove('video-mode');
+          const wrap = document.createElement('div'); wrap.className = 'lightbox-img-wrap';
+          const img = document.createElement('img'); img.src = item.src; img.alt = item.label || ''; img.classList.add('switching');
+          wrap.appendChild(img); lightboxContent.appendChild(wrap);
+          requestAnimationFrame(() => img.classList.remove('switching'));
         }
-
-        tile.addEventListener('click', () => openLightbox(i));
-        if (cursor) {
-          tile.addEventListener('mouseenter', () => cursor.classList.add('expand'));
-          tile.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
-        }
-        viewerGrid.appendChild(tile);
-      });
-
-      eventViewer.classList.add('open');
-      eventViewer.scrollTop = 0;
-      document.body.style.overflow = 'hidden';
-    }
-
-    // ── Close event viewer ────────────────────────────────────
-    function closeEventViewer() {
-      eventViewer.classList.remove('open');
-      document.body.style.overflow = '';
-      viewerGrid.querySelectorAll('video').forEach(v => v.pause());
-    }
-
-    viewerBack.addEventListener('click', closeEventViewer);
-
-    // ── Lightbox ──────────────────────────────────────────────
-    function openLightbox(index) {
-      lightboxIndex = index;
-      lightboxTotal.textContent = currentPhotos.length;
-      showLightboxItem(index);
-      lightbox.classList.add('open');
-    }
-
-    function showLightboxItem(index) {
-      lightboxIndex = index;
-      const item = currentPhotos[index];
-
-      const prevVideo = lightboxContent.querySelector('video');
-      if (prevVideo) { prevVideo.pause(); prevVideo.src = ''; }
-
-      lightboxContent.innerHTML = '';
-
-      if (isVideo(item)) {
-        lightbox.classList.add('video-mode');
-        const wrap = document.createElement('div');
-        wrap.className = 'lightbox-video-wrap';
-        const vid = document.createElement('video');
-        vid.src      = item.src;
-        vid.controls = true;
-        vid.autoplay = true;
-        vid.playsinline = true;
-        if (item.poster) vid.poster = item.poster;
-        wrap.appendChild(vid);
-        lightboxContent.appendChild(wrap);
-      } else {
-        lightbox.classList.remove('video-mode');
-        const wrap = document.createElement('div');
-        wrap.className = 'lightbox-img-wrap';
-        const img = document.createElement('img');
-        img.src = item.src;
-        img.alt = item.label || '';
-        img.classList.add('switching');
-        wrap.appendChild(img);
-        lightboxContent.appendChild(wrap);
-        requestAnimationFrame(() => img.classList.remove('switching'));
+        lightboxCurrent.textContent = index + 1;
+        lightboxPrev.style.opacity = index === 0 ? '0.2' : '1';
+        lightboxNext.style.opacity = index === currentPhotos.length - 1 ? '0.2' : '1';
       }
 
-      lightboxCurrent.textContent = index + 1;
-      lightboxPrev.style.opacity  = index === 0 ? '0.2' : '1';
-      lightboxNext.style.opacity  = index === currentPhotos.length - 1 ? '0.2' : '1';
-    }
+      function closeLightbox() { const v = lightboxContent.querySelector('video'); if (v) { v.pause(); v.src = ''; } lightbox.classList.remove('open', 'video-mode'); lightboxContent.innerHTML = ''; }
 
-    function closeLightbox() {
-      const vid = lightboxContent.querySelector('video');
-      if (vid) { vid.pause(); vid.src = ''; }
-      lightbox.classList.remove('open');
-      lightbox.classList.remove('video-mode');
-      lightboxContent.innerHTML = '';
-    }
+      lightboxClose.addEventListener('click', closeLightbox);
+      lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+      lightboxPrev.addEventListener('click', e => { e.stopPropagation(); if (lightboxIndex > 0) showLightboxItem(lightboxIndex - 1); });
+      lightboxNext.addEventListener('click', e => { e.stopPropagation(); if (lightboxIndex < currentPhotos.length - 1) showLightboxItem(lightboxIndex + 1); });
 
-    lightboxClose.addEventListener('click', closeLightbox);
-    lightbox.addEventListener('click', e => {
-      if (e.target === lightbox) closeLightbox();
-    });
+      let lbTsX = 0;
+      lightbox.addEventListener('touchstart', e => { lbTsX = e.touches[0].clientX; }, { passive: true });
+      lightbox.addEventListener('touchend', e => {
+        if (lightbox.classList.contains('video-mode')) return;
+        const dx = e.changedTouches[0].clientX - lbTsX;
+        if (Math.abs(dx) > 50) {
+          if (dx < 0 && lightboxIndex < currentPhotos.length - 1) showLightboxItem(lightboxIndex + 1);
+          if (dx > 0 && lightboxIndex > 0) showLightboxItem(lightboxIndex - 1);
+        }
+      }, { passive: true });
 
-    lightboxPrev.addEventListener('click', e => {
-      e.stopPropagation();
-      if (lightboxIndex > 0) showLightboxItem(lightboxIndex - 1);
-    });
-    lightboxNext.addEventListener('click', e => {
-      e.stopPropagation();
-      if (lightboxIndex < currentPhotos.length - 1) showLightboxItem(lightboxIndex + 1);
-    });
-
-    document.addEventListener('keydown', e => {
-      if (lightbox.classList.contains('open')) {
-        if (lightbox.classList.contains('video-mode')) {
+      document.addEventListener('keydown', e => {
+        if (lightbox.classList.contains('open')) {
+          if (lightbox.classList.contains('video-mode')) { if (e.key === 'Escape') closeLightbox(); return; }
+          if (e.key === 'ArrowLeft' && lightboxIndex > 0) showLightboxItem(lightboxIndex - 1);
+          if (e.key === 'ArrowRight' && lightboxIndex < currentPhotos.length - 1) showLightboxItem(lightboxIndex + 1);
           if (e.key === 'Escape') closeLightbox();
-          return;
-        }
-        if (e.key === 'ArrowLeft'  && lightboxIndex > 0)                        showLightboxItem(lightboxIndex - 1);
-        if (e.key === 'ArrowRight' && lightboxIndex < currentPhotos.length - 1) showLightboxItem(lightboxIndex + 1);
-        if (e.key === 'Escape') closeLightbox();
-      } else if (eventViewer.classList.contains('open')) {
-        if (e.key === 'Escape') closeEventViewer();
-      }
-    });
-
-  })();
+        } else if (eventViewer.classList.contains('open')) { if (e.key === 'Escape') closeEventViewer(); }
+      });
+    })();
   </script>
-
 </body>
+
 </html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DUCK.BRS — Community</title>
+  <link rel="icon" type="image/png" href="/duck/assets/ducklogo.JPG">
+  <meta name="description" content="DUCK.BRS community — Bristol." />
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GQGT6JKJF8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-GQGT6JKJF8');
+  </script>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/duck/styles.css" />
+</head>
+<body>
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+
+  <div class="side-drawer" id="sideDrawer">
+    <div class="drawer-label">Navigation</div>
+    <nav class="drawer-nav">
+      <a href="/duck/home/">Home <span class="arrow">→</span></a>
+      <a href="/duck/photos/">Photos <span class="arrow">→</span></a>
+      <a href="/duck/community/" class="active">
+        Community
+        <span class="coming-soon">Soon</span>
+        <span class="arrow">→</span>
+      </a>
+    </nav>
+    <div class="drawer-footer">
+      <div class="drawer-social">
+        <a href="https://www.instagram.com/duck.brs/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://ra.co" target="_blank" rel="noopener">RA</a>
+      </div>
+      <p>© 2026 DUCK.BRS · Bristol, UK</p>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-left">
+      <a class="nav-instagram" href="https://www.instagram.com/duck.brs/" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/>
+        </svg>
+      </a>
+    </div>
+    <a class="nav-wordmark" href="/duck/home/">DUCK<span class="dot">.</span>BRS</a>
+    <div class="nav-right">
+      <button class="burger" id="burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- SKELETON HERO -->
+  <div style="
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6rem 2rem;
+    background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(200,168,75,0.06) 0%, transparent 70%);
+  ">
+    <div class="section-label" style="justify-content: center;">Coming Soon</div>
+    <h1 style="
+      font-family: var(--font-display);
+      font-size: clamp(4rem, 12vw, 9rem);
+      letter-spacing: 0.04em;
+      line-height: 0.88;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    ">Community</h1>
+    <p style="font-size: 1rem; color: var(--muted); max-width: 420px; line-height: 1.8; margin-bottom: 3rem;">
+      Something's being built here. Stay close.
+    </p>
+    <a href="/duck/home/" style="
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-decoration: none;
+      border-bottom: 1px solid var(--gold);
+      padding-bottom: 2px;
+      transition: color 0.2s;
+    ">← Back Home</a>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <span class="footer-wordmark">DUCK<span class="dot">.</span>BRS</span>
+        <p class="footer-desc">Bristol's underground party collective. Music, culture, and community since day one.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigate</h4>
+        <a href="/duck/home/">Home</a>
+        <a href="/duck/photos/">Photos</a>
+        <a href="/duck/community/">Community</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a href="mailto:n8warneck@gmail.com">n8warneck@gmail.com</a>
+        <a href="https://www.instagram.com/duck.brs/" target="_blank" rel="noopener">@duck.brs</a>
+        <a href="https://ra.co" target="_blank" rel="noopener">RA Profile</a>
+        <p>Bristol, UK 🇬🇧</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 DUCK.BRS. All rights reserved.</span>
+      <span>Bristol, England</span>
+    </div>
+  </footer>
+
+  <script src="/duck/script.js"></script>
+</body>
+</html>
