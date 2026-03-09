@@ -17,29 +17,39 @@
 <body>
   <div class="cursor" id="cursor"></div>
   <div class="cursor-ring" id="cursorRing"></div>
-  <div class="side-drawer-overlay" id="drawerOverlay"></div>
-  <aside class="side-drawer" id="sideDrawer">
-    <nav class="drawer-nav-links">
-      <a href="/duck/home/" class="drawer-link">Home <span class="link-num">01</span></a>
-      <a href="/duck/photos/" class="drawer-link active">Photos <span class="link-num">02</span></a>
-      <a href="/duck/community/" class="drawer-link skeleton">Community <span class="link-num">03</span></a>
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <div class="side-drawer" id="sideDrawer">
+    <div class="drawer-label">Navigation</div>
+    <nav class="drawer-nav">
+      <a href="/duck/home/">Home <span class="arrow">→</span></a>
+      <a href="/duck/photos/" class="active">Photos <span class="arrow">→</span></a>
+      <a href="/duck/community/">
+        Community
+        <span class="coming-soon">Soon</span>
+        <span class="arrow">→</span>
+      </a>
     </nav>
     <div class="drawer-footer">
-      <p>DUCK.BRS &middot; Bristol &middot; BS1</p>
+      <div class="drawer-social">
+        <a href="https://www.instagram.com/duck.brs/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://ra.co" target="_blank" rel="noopener">RA</a>
+      </div>
+      <p>© 2026 DUCK.BRS · Bristol, UK</p>
     </div>
-  </aside>
+  </div>
   <nav>
-    <a class="nav-wordmark" href="/duck/home/">DUCK<span>.BRS</span></a>
-    <div class="nav-right">
-      <a class="nav-instagram" href="https://www.instagram.com/duck.brs/" target="_blank" rel="noopener"
-        aria-label="Instagram">
-        <svg viewBox="0 0 24 24">
-          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-          <circle cx="12" cy="12" r="4.5" />
-          <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none" />
+    <div class="nav-left">
+      <a class="nav-instagram" href="https://www.instagram.com/duck.brs/" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/>
         </svg>
       </a>
-      <button class="nav-burger" id="navBurger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+    <a class="nav-wordmark" href="/duck/home/">DUCK<span class="dot">.</span>BRS</a>
+    <div class="nav-right">
+      <button class="burger" id="burger" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
   </nav>
   <div class="photos-hero">
@@ -83,7 +93,7 @@
   <footer>
     <div class="footer-inner">
       <div>
-        <a class="footer-wordmark" href="/duck/home/">DUCK<span>.BRS</span></a>
+        <a class="footer-wordmark" href="/duck/home/">DUCK<span class="dot">.</span>BRS</a>
         <p class="footer-desc">Bristol's underground party collective. Music, culture, and community since day one.</p>
       </div>
       <div class="footer-col">
@@ -320,10 +330,10 @@
           if (e.key === 'ArrowLeft' && lightboxIndex > 0) showLightboxItem(lightboxIndex - 1);
           if (e.key === 'ArrowRight' && lightboxIndex < currentPhotos.length - 1) showLightboxItem(lightboxIndex + 1);
           if (e.key === 'Escape') closeLightbox();
-        } else if (eventViewer.classList.contains('open')) { if (e.key === 'Escape') closeEventViewer(); }
+        }
       });
+
     })();
   </script>
 </body>
-
 </html>

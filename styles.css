@@ -102,8 +102,7 @@ nav {
   align-items: center;
   justify-content: space-between;
   padding: 1.2rem 2rem;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, .96) 0%, transparent 100%);
-  backdrop-filter: blur(4px);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, .92) 0%, transparent 100%);
 }
 
 .nav-wordmark {
