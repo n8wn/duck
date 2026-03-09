@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PEAK 22° — Photos</title>
+  <link rel="icon" type="image/png" href="/peak22site/assets/squarelogo.png">
+  <meta name="description" content="PEAK 22° photo gallery — moments from Bristol." />
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GQGT6JKJF8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-GQGT6JKJF8');
+  </script>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/peak22site/styles.css" />
+  <style>
+    /* ── COLLECTIONS GRID ── */
+    .collections-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 2px;
+      padding: 0 3rem 6rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .collection-card {
+      position: relative;
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      cursor: none;
+      background: var(--surface);
+    }
+    .collection-card img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      filter: brightness(0.6) saturate(0.8);
+      transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.4s;
+    }
+    .collection-card:hover img {
+      transform: scale(1.05);
+      filter: brightness(0.45) saturate(0.9);
+    }
+    .collection-card-info {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 1.8rem;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+    }
+    .collection-card-index {
+      font-family: var(--font-display); font-size: 0.7rem;
+      letter-spacing: 0.35em; color: var(--red-hot);
+      margin-bottom: 0.4rem; text-transform: uppercase;
+    }
+    .collection-card-name {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      letter-spacing: 0.05em; color: var(--white);
+      text-transform: uppercase; line-height: 1; margin-bottom: 0.5rem;
+    }
+    .collection-card-meta {
+      display: flex; align-items: center; gap: 1rem;
+      font-size: 0.7rem; letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.5); text-transform: uppercase;
+    }
+    .collection-card-arrow {
+      position: absolute; top: 1.5rem; right: 1.5rem;
+      width: 40px; height: 40px;
+      border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: translateY(6px);
+      transition: opacity 0.3s, transform 0.3s, border-color 0.3s;
+    }
+    .collection-card-arrow svg { width: 14px; height: 14px; stroke: var(--white); fill: none; stroke-width: 2; }
+    .collection-card:hover .collection-card-arrow { opacity: 1; transform: translateY(0); border-color: var(--red-hot); }
+
+    /* ── EVENT VIEWER ── */
+    .event-viewer {
+      position: fixed; inset: 0; background: #000;
+      z-index: 500; overflow-y: auto;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .event-viewer.open { opacity: 1; pointer-events: all; }
+
+    .event-viewer-header {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 2rem;
+      background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .event-viewer-title { display: flex; flex-direction: column; }
+    .event-viewer-name {
+      font-family: var(--font-display); font-size: 1.6rem;
+      letter-spacing: 0.06em; color: var(--white);
+      text-transform: uppercase; line-height: 1;
+    }
+    .event-viewer-date {
+      font-family: var(--font-display); font-size: 0.7rem;
+      letter-spacing: 0.3em; color: var(--red-hot);
+      text-transform: uppercase; margin-top: 0.2rem;
+    }
+    .event-viewer-back {
+      font-family: var(--font-display); font-size: 0.85rem;
+      letter-spacing: 0.2em; color: var(--muted); cursor: none;
+      text-transform: uppercase; display: flex; align-items: center; gap: 0.6rem;
+      transition: color 0.2s; background: none; border: none; padding: 0;
+    }
+    .event-viewer-back:hover { color: var(--white); }
+    .event-viewer-back svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .event-viewer-count { font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.2em; color: var(--muted); }
+
+    .event-viewer-grid {
+      columns: 3; column-gap: 3px; padding: 3px 3px 6rem;
+    }
+    .event-viewer-item {
+      break-inside: avoid; margin-bottom: 3px;
+      position: relative; overflow: hidden; cursor: none;
+    }
+
+    /* Photo tile */
+    .event-viewer-item img {
+      width: 100%; display: block;
+      filter: brightness(0.9) saturate(0.85);
+      transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94), filter 0.3s;
+    }
+    .event-viewer-item:hover img { transform: scale(1.03); filter: brightness(1) saturate(1); }
+
+    /* Video tile */
+    .event-viewer-item .video-thumb {
+      position: relative; width: 100%; background: #111;
+    }
+    .event-viewer-item .video-thumb video {
+      width: 100%; display: block;
+      filter: brightness(0.85) saturate(0.85);
+      transition: filter 0.3s;
+      pointer-events: none; /* thumb only — click opens lightbox */
+    }
+    .event-viewer-item:hover .video-thumb video { filter: brightness(1) saturate(1); }
+
+    /* Play button overlay on video tiles */
+    .video-play-badge {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.25);
+      transition: background 0.3s;
+    }
+    .event-viewer-item:hover .video-play-badge { background: rgba(0,0,0,0.1); }
+    .video-play-badge svg {
+      width: 48px; height: 48px;
+      fill: rgba(255,255,255,0.9);
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6));
+      transition: transform 0.2s, fill 0.2s;
+    }
+    .event-viewer-item:hover .video-play-badge svg {
+      transform: scale(1.12);
+      fill: var(--red-hot);
+    }
+
+    /* Video type label */
+    .video-type-badge {
+      position: absolute; top: 0.6rem; left: 0.6rem;
+      font-family: var(--font-display); font-size: 0.6rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--white); background: var(--red);
+      padding: 0.15rem 0.5rem;
+    }
+
+    .event-viewer-item .overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0); transition: background 0.3s;
+    }
+    .event-viewer-item:hover .overlay { background: rgba(0,0,0,0.1); }
+
+    /* ── LIGHTBOX ── */
+    .lightbox {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.97); z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.35s;
+    }
+    .lightbox.open { opacity: 1; pointer-events: all; }
+
+    .lightbox-img-wrap {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      max-width: 90vw; max-height: 88vh;
+    }
+    .lightbox img {
+      max-width: 88vw; max-height: 84vh;
+      object-fit: contain; display: block;
+      border: 1px solid var(--border); transition: opacity 0.2s;
+    }
+    .lightbox img.switching { opacity: 0; }
+
+    /* Lightbox video player */
+    .lightbox-video-wrap {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      max-width: 90vw; max-height: 88vh;
+    }
+    .lightbox-video-wrap video {
+      max-width: 88vw; max-height: 84vh;
+      display: block; border: 1px solid var(--border);
+      background: #000; outline: none;
+    }
+
+    .lightbox-close {
+      position: fixed; top: 1.5rem; right: 1.5rem;
+      font-family: var(--font-display); font-size: 1rem;
+      letter-spacing: 0.15em; color: var(--muted); cursor: none;
+      transition: color 0.2s; z-index: 1001;
+      background: none; border: none; padding: 0; text-transform: uppercase;
+    }
+    .lightbox-close:hover { color: var(--red-hot); }
+
+    .lightbox-counter {
+      position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+      font-family: var(--font-display); font-size: 0.8rem;
+      letter-spacing: 0.25em; color: var(--muted); z-index: 1001;
+    }
+    .lightbox-counter span { color: var(--white); }
+
+    /* Hide nav arrows when a video is open (video has its own controls) */
+    .lightbox.video-mode .lightbox-nav { display: none; }
+    .lightbox.video-mode .lightbox-counter { display: none; }
+
+    .lightbox-nav {
+      position: fixed; top: 50%; transform: translateY(-50%); z-index: 1001;
+      background: none; border: 1px solid var(--border);
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: none; transition: border-color 0.2s, background 0.2s;
+    }
+    .lightbox-nav:hover { border-color: var(--red-hot); background: rgba(42,191,191,0.08); }
+    .lightbox-nav svg { width: 18px; height: 18px; stroke: var(--white); fill: none; stroke-width: 2; }
+    .lightbox-prev { left: 1.5rem; }
+    .lightbox-next { right: 1.5rem; }
+
+    @media (max-width: 768px) {
+      .collections-grid { grid-template-columns: 1fr; padding: 0 1rem 4rem; }
+      .event-viewer-grid { columns: 2; }
+      .lightbox-prev { left: 0.5rem; }
+      .lightbox-next { right: 0.5rem; }
+    }
+    @media (max-width: 480px) {
+      .event-viewer-grid { columns: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/peak22site/home/">
+      <img src="/peak22site/assets/peak22logo.png" alt="PEAK 22°">
+    </a>
+    <div class="nav-tabs">
+      <a href="/peak22site/home/">Home</a>
+      <a href="/peak22site/photos/" class="active">Photos</a>
+    </div>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <div class="photos-hero">
+    <div>
+      <div class="section-label">Archive</div>
+      <h1 class="section-title reveal">The<br>Gallery</h1>
+    </div>
+  </div>
+
+  <!-- SINGLE TAB BAR -->
+  <div class="gallery-filters" id="filters">
+    <button class="filter-btn active" data-filter="events">Events</button>
+    <!-- More tabs when ready:
+    <button class="filter-btn" data-filter="crowd">Crowd</button>
+    <button class="filter-btn" data-filter="artists">Artists</button>
+    <button class="filter-btn" data-filter="venue">Venue</button>
+    -->
+  </div>
+
+  <!-- EVENTS TAB CONTENT -->
+  <div class="events-gallery-page" id="tab-events">
+    <div id="collectionsRoot"></div>
+  </div>
+
+  <!-- EVENT VIEWER -->
+  <div class="event-viewer" id="eventViewer">
+    <div class="event-viewer-header">
+      <button class="event-viewer-back" id="viewerBack">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        All Events
+      </button>
+      <div class="event-viewer-title">
+        <span class="event-viewer-name" id="viewerName"></span>
+        <span class="event-viewer-date" id="viewerDate"></span>
+      </div>
+      <span class="event-viewer-count" id="viewerCount"></span>
+    </div>
+    <div class="event-viewer-grid" id="viewerGrid"></div>
+  </div>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">✕ Close</button>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <!-- Content injected here by JS -->
+    <div id="lightboxContent"></div>
+    <button class="lightbox-nav lightbox-next" id="lightboxNext">
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <div class="lightbox-counter">
+      <span id="lightboxCurrent">1</span> / <span id="lightboxTotal">1</span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <img src="/peak22site/assets/peak22logo.png" alt="PEAK 22°">
+        <p class="footer-desc">Bristol's underground party collective. Music, culture, and community since day one.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigate</h4>
+        <a href="/peak22site/home/">Home</a>
+        <a href="/peak22site/photos/">Photos</a>
+        <a href="#">Events</a>
+        <a href="#">Mixes</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a href="mailto:info@peak22.co.uk">info@peak22.co.uk</a>
+        <a href="https://instagram.com" target="_blank" rel="noopener">@peak22degrees</a>
+        <a href="https://ra.co" target="_blank" rel="noopener">RA Profile</a>
+        <p>Bristol, UK 🇬🇧</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 PEAK 22°. All rights reserved.</span>
+      <span>Bristol, England</span>
+    </div>
+  </footer>
+
+  <script src="/peak22site/script.js"></script>
+
+  <script>
+  // ═══════════════════════════════════════════════════════════════
+  //  ██████╗ EVENTS CONFIG — EDIT THIS TO ADD YOUR PHOTOS/VIDEOS ██████╗
+  //
+  //  Each object = one event collection card.
+  //
+  //  PHOTO entry:
+  //    { src: '/peak22site/assets/photos/...jpg', label: 'caption' }
+  //
+  //  VIDEO entry — just add  type: 'video'  and optionally a poster image:
+  //    { src: '/peak22site/assets/photos/...mp4', label: 'caption', type: 'video' }
+  //    { src: '/peak22site/assets/photos/...mp4', label: 'caption', type: 'video', poster: '/peak22site/assets/photos/...jpg' }
+  //
+  //  Supported video formats: .mp4  .webm  .mov
+  //  The FIRST item in photos[] is always the collection cover — use a photo for best results.
+  //
+  //  TO ADD AN EVENT: copy a block, paste it, fill in details.
+  //  TO HIDE AN EVENT: wrap the block in /* ... */
+  //
+  // ═══════════════════════════════════════════════════════════════
+
+  const EVENTS = [
+
+    // ── EVENT 1 ──────────────────────────────────────────────────
+    {
+      name:  'The Living Room Series Pt 1',
+      date:  '14 NOV 2025',
+      photos: [
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-1.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-2.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-3.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-4.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-5.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-6.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-7.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-8.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-9.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-10.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-11.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-12.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-13.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-14.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-15.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-16.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-17.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-18.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-19.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-20.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-21.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-22.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-23.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-24.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-25.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-26.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-27.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-28.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-29.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-30.JPG', label: 'Your caption' },
+         // Example video entry — uncomment and update path when you have a video:
+         // { src: '/peak22site/assets/photos/14-NOV-2025-PARTY/highlight.mp4', label: 'Highlight reel', type: 'video', poster: '/peak22site/assets/photos/14-NOV-2025-PARTY/14nov2025party-1.JPG' },
+      ]
+    },
+
+    // ── EVENT 2 ──────────────────────────────────────────────────
+    {
+      name:  'The Living Room Series Pt 2',
+      date:  '06 FEB 2026',
+      photos: [
+         { src: '/peak22site/assets/photos/6-FEB-2026-PARTY/06feb2026party-1.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/6-FEB-2026-PARTY/06feb2026party-2.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/6-FEB-2026-PARTY/06feb2026party-3.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/6-FEB-2026-PARTY/06feb2026party-4.JPG', label: 'Your caption' },
+         { src: '/peak22site/assets/photos/6-FEB-2026-PARTY/06feb2026party-5.MOV', label: 'Highlight reel', type: 'video' },
+         { src: '/peak22site/assets/photos/6-FEB-2026-PARTY/06feb2026party-6.MOV', label: 'Highlight reel', type: 'video', poster: '/peak22site/assets/photos/6-FEB-2026-PARTY/06feb2026party-11.JPG' },
+      ]
+    },
+
+    // ── EVENT 3 ──────────────────────────────────────────────────
+    {
+      name:  'The Third Space',
+      date:  '15 FEB 2025',
+      photos: [
+        { src: '/peak22site/assets/photos/6-FEB-2026-PARTY/06feb2026party-14.JPG', label: 'Your caption' },
+      ]
+    },
+
+  ];
+
+  // ═══════════════════════════════════════════════════════════════
+  //  DO NOT EDIT BELOW THIS LINE
+  // ═══════════════════════════════════════════════════════════════
+
+  (function() {
+
+    let currentPhotos = [];
+    let lightboxIndex = 0;
+
+    const collectionsRoot = document.getElementById('collectionsRoot');
+    const eventViewer     = document.getElementById('eventViewer');
+    const viewerBack      = document.getElementById('viewerBack');
+    const viewerName      = document.getElementById('viewerName');
+    const viewerDate      = document.getElementById('viewerDate');
+    const viewerCount     = document.getElementById('viewerCount');
+    const viewerGrid      = document.getElementById('viewerGrid');
+    const lightbox        = document.getElementById('lightbox');
+    const lightboxContent = document.getElementById('lightboxContent');
+    const lightboxClose   = document.getElementById('lightboxClose');
+    const lightboxPrev    = document.getElementById('lightboxPrev');
+    const lightboxNext    = document.getElementById('lightboxNext');
+    const lightboxCurrent = document.getElementById('lightboxCurrent');
+    const lightboxTotal   = document.getElementById('lightboxTotal');
+    const cursor          = document.getElementById('cursor');
+
+    // ── Helper: is this item a video? ─────────────────────────
+    function isVideo(item) {
+      return item.type === 'video';
+    }
+
+    // ── Build collection cover cards ──────────────────────────
+    const grid = document.createElement('div');
+    grid.className = 'collections-grid';
+
+    EVENTS.forEach((event, idx) => {
+      const card = document.createElement('div');
+      card.className = 'collection-card reveal';
+
+      const coverSrc = event.photos.length > 0 ? event.photos[0].src : '';
+      const videoCount = event.photos.filter(isVideo).length;
+      const photoCount = event.photos.length - videoCount;
+
+      // Build meta string e.g. "28 photos · 2 videos"
+      let metaParts = [];
+      if (photoCount > 0) metaParts.push(`${photoCount} photo${photoCount !== 1 ? 's' : ''}`);
+      if (videoCount > 0) metaParts.push(`${videoCount} video${videoCount !== 1 ? 's' : ''}`);
+      const metaStr = metaParts.join(' · ');
+
+      card.innerHTML = `
+        <img src="${coverSrc}" alt="${event.name}" loading="lazy">
+        <div class="collection-card-info">
+          <div class="collection-card-index">${String(idx + 1).padStart(2, '0')}</div>
+          <div class="collection-card-name">${event.name}</div>
+          <div class="collection-card-meta">
+            <span>${event.date}</span>
+            <span>·</span>
+            <span>${metaStr}</span>
+          </div>
+        </div>
+        <div class="collection-card-arrow">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      `;
+
+      card.addEventListener('click', () => openEventViewer(event));
+      if (cursor) {
+        card.addEventListener('mouseenter', () => cursor.classList.add('expand'));
+        card.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
+      }
+      grid.appendChild(card);
+    });
+
+    collectionsRoot.appendChild(grid);
+
+    // Scroll reveal for cards
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 100);
+          revealObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -40px 0px' });
+    grid.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+    // ── Open event viewer ─────────────────────────────────────
+    function openEventViewer(event) {
+      currentPhotos = event.photos;
+
+      viewerName.textContent = event.name;
+      viewerDate.textContent = event.date;
+
+      const videoCount = event.photos.filter(isVideo).length;
+      const photoCount = event.photos.length - videoCount;
+      let countParts = [];
+      if (photoCount > 0) countParts.push(`${photoCount} photo${photoCount !== 1 ? 's' : ''}`);
+      if (videoCount > 0) countParts.push(`${videoCount} video${videoCount !== 1 ? 's' : ''}`);
+      viewerCount.textContent = countParts.join(' · ');
+
+      viewerGrid.innerHTML = '';
+
+      event.photos.forEach((item, i) => {
+        const tile = document.createElement('div');
+        tile.className = 'event-viewer-item';
+
+        if (isVideo(item)) {
+          // ── Video tile ──
+          tile.innerHTML = `
+            <div class="video-thumb">
+              <video src="${item.src}" ${item.poster ? `poster="${item.poster}"` : ''} preload="metadata" muted playsinline></video>
+              <div class="video-play-badge">
+                <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
+              </div>
+              <span class="video-type-badge">Video</span>
+            </div>
+            <div class="overlay"></div>
+          `;
+        } else {
+          // ── Photo tile ──
+          tile.innerHTML = `
+            <img src="${item.src}" alt="${item.label || event.name}" loading="lazy">
+            <div class="overlay"></div>
+          `;
+        }
+
+        tile.addEventListener('click', () => openLightbox(i));
+        if (cursor) {
+          tile.addEventListener('mouseenter', () => cursor.classList.add('expand'));
+          tile.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
+        }
+        viewerGrid.appendChild(tile);
+      });
+
+      eventViewer.classList.add('open');
+      eventViewer.scrollTop = 0;
+      document.body.style.overflow = 'hidden';
+    }
+
+    // ── Close event viewer ────────────────────────────────────
+    function closeEventViewer() {
+      eventViewer.classList.remove('open');
+      document.body.style.overflow = '';
+      // Pause any playing video in viewer
+      viewerGrid.querySelectorAll('video').forEach(v => v.pause());
+    }
+
+    viewerBack.addEventListener('click', closeEventViewer);
+
+    // ── Lightbox ──────────────────────────────────────────────
+    function openLightbox(index) {
+      lightboxIndex = index;
+      lightboxTotal.textContent = currentPhotos.length;
+      showLightboxItem(index);
+      lightbox.classList.add('open');
+    }
+
+    function showLightboxItem(index) {
+      lightboxIndex = index;
+      const item = currentPhotos[index];
+
+      // Stop any currently playing lightbox video
+      const prevVideo = lightboxContent.querySelector('video');
+      if (prevVideo) { prevVideo.pause(); prevVideo.src = ''; }
+
+      lightboxContent.innerHTML = '';
+
+      if (isVideo(item)) {
+        // ── Video in lightbox ──
+        lightbox.classList.add('video-mode');
+        const wrap = document.createElement('div');
+        wrap.className = 'lightbox-video-wrap';
+        const vid = document.createElement('video');
+        vid.src      = item.src;
+        vid.controls = true;
+        vid.autoplay = true;
+        vid.playsinline = true;
+        if (item.poster) vid.poster = item.poster;
+        wrap.appendChild(vid);
+        lightboxContent.appendChild(wrap);
+      } else {
+        // ── Photo in lightbox ──
+        lightbox.classList.remove('video-mode');
+        const wrap = document.createElement('div');
+        wrap.className = 'lightbox-img-wrap';
+        const img = document.createElement('img');
+        img.src = item.src;
+        img.alt = item.label || '';
+        img.classList.add('switching');
+        wrap.appendChild(img);
+        lightboxContent.appendChild(wrap);
+        // Fade in
+        requestAnimationFrame(() => img.classList.remove('switching'));
+      }
+
+      lightboxCurrent.textContent = index + 1;
+      lightboxPrev.style.opacity  = index === 0 ? '0.2' : '1';
+      lightboxNext.style.opacity  = index === currentPhotos.length - 1 ? '0.2' : '1';
+    }
+
+    function closeLightbox() {
+      // Stop video if playing
+      const vid = lightboxContent.querySelector('video');
+      if (vid) { vid.pause(); vid.src = ''; }
+      lightbox.classList.remove('open');
+      lightbox.classList.remove('video-mode');
+      lightboxContent.innerHTML = '';
+    }
+
+    lightboxClose.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', e => {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    lightboxPrev.addEventListener('click', e => {
+      e.stopPropagation();
+      if (lightboxIndex > 0) showLightboxItem(lightboxIndex - 1);
+    });
+    lightboxNext.addEventListener('click', e => {
+      e.stopPropagation();
+      if (lightboxIndex < currentPhotos.length - 1) showLightboxItem(lightboxIndex + 1);
+    });
+
+    document.addEventListener('keydown', e => {
+      if (lightbox.classList.contains('open')) {
+        // Don't navigate with arrows if a video is playing
+        if (lightbox.classList.contains('video-mode')) {
+          if (e.key === 'Escape') closeLightbox();
+          return;
+        }
+        if (e.key === 'ArrowLeft'  && lightboxIndex > 0)                        showLightboxItem(lightboxIndex - 1);
+        if (e.key === 'ArrowRight' && lightboxIndex < currentPhotos.length - 1) showLightboxItem(lightboxIndex + 1);
+        if (e.key === 'Escape') closeLightbox();
+      } else if (eventViewer.classList.contains('open')) {
+        if (e.key === 'Escape') closeEventViewer();
+      }
+    });
+
+  })();
+  </script>
+
+</body>
+</html>
