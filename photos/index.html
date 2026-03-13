@@ -219,8 +219,13 @@
 // with this. Keep the EVENTS array above it unchanged.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─── Photos page inline script ───────────────────────────────────────────────
+// Replace the (function(){ ... })(); block at the bottom of photos/index.html
+// with this. Keep the EVENTS array above it unchanged.
+// ─────────────────────────────────────────────────────────────────────────────
+
 (function () {
-  let currentPhotos = [], lightboxIndex = 0;
+  let currentEventIndex = 0, lightboxIndex = 0;
 
   const collectionsRoot = document.getElementById('collectionsRoot'),
     eventViewer         = document.getElementById('eventViewer'),
@@ -240,7 +245,7 @@
 
   function isVideo(item) { return item.type === 'video'; }
 
-  // ── Scroll lock (mirrors script.js helpers but self-contained) ──────────────
+  // ── Scroll lock ─────────────────────────────────────────────────────────────
   let _scrollY = 0;
   function lockScroll() {
     _scrollY = window.scrollY;
@@ -257,6 +262,61 @@
     window.scrollTo(0, _scrollY);
   }
 
+  // ── Pre-render all event grids at page load ─────────────────────────────────
+  // Each event gets its own hidden grid fragment built immediately so images
+  // start fetching in the background — no waiting for a click.
+  const prebuiltGrids = [];
+
+  EVENTS.forEach((event, eventIdx) => {
+    const frag = document.createDocumentFragment();
+
+    event.photos.forEach((item, photoIdx) => {
+      const tile = document.createElement('div');
+      tile.className = 'event-viewer-item';
+
+      if (isVideo(item)) {
+        tile.innerHTML = `
+          <div class="video-thumb">
+            <video src="${item.src}"${item.poster ? ` poster="${item.poster}"` : ''} preload="metadata" muted playsinline></video>
+            <div class="video-play-badge">
+              <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
+            </div>
+            <span class="video-type-badge">Video</span>
+          </div>
+          <div class="overlay"></div>`;
+      } else {
+        const img = document.createElement('img');
+        img.alt = item.label || event.name;
+        // Most-recent event (index 0): load eagerly so it's ready instantly.
+        // Older events: lazy — browser still starts fetching them in background.
+        img.loading = eventIdx === 0 ? 'eager' : 'lazy';
+        img.src = item.src;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay';
+
+        tile.appendChild(img);
+        tile.appendChild(overlay);
+      }
+
+      tile.addEventListener('click', () => openLightbox(photoIdx));
+      if (cursor) {
+        tile.addEventListener('mouseenter', () => cursor.classList.add('expand'));
+        tile.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
+      }
+
+      frag.appendChild(tile);
+    });
+
+    // Append into a real hidden container so the browser actually fetches images.
+    const hiddenContainer = document.createElement('div');
+    hiddenContainer.style.cssText = 'display:none;position:absolute;pointer-events:none;';
+    hiddenContainer.appendChild(frag);
+    document.body.appendChild(hiddenContainer);
+
+    prebuiltGrids.push({ event, container: hiddenContainer });
+  });
+
   // ── Build collections grid ──────────────────────────────────────────────────
   const grid = document.createElement('div');
   grid.className = 'collections-grid';
@@ -272,7 +332,7 @@
     if (vc > 0) mp.push(`${vc} video${vc !== 1 ? 's' : ''}`);
 
     card.innerHTML = `
-      <img src="${coverSrc}" alt="${event.name}" loading="lazy">
+      <img src="${coverSrc}" alt="${event.name}" loading="eager">
       <div class="collection-card-info">
         <div class="collection-card-index">${String(idx + 1).padStart(2, '0')}</div>
         <div class="collection-card-name">${event.name}</div>
@@ -284,7 +344,7 @@
         <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </div>`;
 
-    card.addEventListener('click', () => openEventViewer(event));
+    card.addEventListener('click', () => openEventViewer(idx));
     if (cursor) {
       card.addEventListener('mouseenter', () => cursor.classList.add('expand'));
       card.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
@@ -294,7 +354,6 @@
 
   collectionsRoot.appendChild(grid);
 
-  // Scroll-reveal for collection cards
   const ro = new IntersectionObserver((entries) => {
     entries.forEach((e, i) => {
       if (e.isIntersecting) {
@@ -306,11 +365,12 @@
   grid.querySelectorAll('.reveal').forEach(el => ro.observe(el));
 
   // ── Event Viewer ────────────────────────────────────────────────────────────
-  function openEventViewer(event) {
-    currentPhotos = event.photos;
+  function openEventViewer(idx) {
+    const { event, container } = prebuiltGrids[idx];
+    currentEventIndex = idx;
+
     viewerName.textContent = event.name;
     viewerDate.textContent = event.date;
-
     const vc = event.photos.filter(isVideo).length;
     const pc = event.photos.length - vc;
     const cp = [];
@@ -318,35 +378,11 @@
     if (vc > 0) cp.push(`${vc} video${vc !== 1 ? 's' : ''}`);
     viewerCount.textContent = cp.join(' · ');
 
+    // Move pre-built tiles directly into the viewer — images already decoded
     viewerGrid.innerHTML = '';
-
-    event.photos.forEach((item, i) => {
-      const tile = document.createElement('div');
-      tile.className = 'event-viewer-item';
-
-      if (isVideo(item)) {
-        tile.innerHTML = `
-          <div class="video-thumb">
-            <video src="${item.src}"${item.poster ? ` poster="${item.poster}"` : ''} preload="metadata" muted playsinline></video>
-            <div class="video-play-badge">
-              <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
-            </div>
-            <span class="video-type-badge">Video</span>
-          </div>
-          <div class="overlay"></div>`;
-      } else {
-        tile.innerHTML = `
-          <img src="${item.src}" alt="${item.label || event.name}" loading="lazy">
-          <div class="overlay"></div>`;
-      }
-
-      tile.addEventListener('click', () => openLightbox(i));
-      if (cursor) {
-        tile.addEventListener('mouseenter', () => cursor.classList.add('expand'));
-        tile.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
-      }
-      viewerGrid.appendChild(tile);
-    });
+    while (container.firstChild) {
+      viewerGrid.appendChild(container.firstChild);
+    }
 
     eventViewer.classList.add('open');
     eventViewer.scrollTop = 0;
@@ -354,8 +390,15 @@
   }
 
   function closeEventViewer() {
-    // Pause any playing videos in the grid before closing
+    const { container } = prebuiltGrids[currentEventIndex];
+
     viewerGrid.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; });
+
+    // Move tiles back into hidden container — keeps images decoded for next open
+    while (viewerGrid.firstChild) {
+      container.appendChild(viewerGrid.firstChild);
+    }
+
     eventViewer.classList.remove('open');
     unlockScroll();
   }
@@ -363,32 +406,28 @@
   viewerBack.addEventListener('click', closeEventViewer);
 
   // ── Lightbox ────────────────────────────────────────────────────────────────
+  function currentPhotos() { return EVENTS[currentEventIndex].photos; }
+
   function openLightbox(index) {
     lightboxIndex = index;
-    lightboxTotal.textContent = currentPhotos.length;
-    renderLightboxItem(index, false); // no fade on first open
+    lightboxTotal.textContent = currentPhotos().length;
+    renderLightboxItem(index, false);
     lightbox.classList.add('open');
   }
 
-  // imgEl is reused between navigations to avoid DOM thrashing
   let _cachedImg = null;
 
   function renderLightboxItem(index, animate) {
     lightboxIndex = index;
-    const item = currentPhotos[index];
+    const photos = currentPhotos();
+    const item   = photos[index];
 
-    // Update counter
     lightboxCurrent.textContent = index + 1;
-
-    // Nav opacity — CSS handles pointer-events via attribute selector
-    lightboxPrev.style.opacity = index === 0 ? '0.2' : '1';
-    lightboxNext.style.opacity = index === currentPhotos.length - 1 ? '0.2' : '1';
+    lightboxPrev.style.opacity  = index === 0 ? '0.2' : '1';
+    lightboxNext.style.opacity  = index === photos.length - 1 ? '0.2' : '1';
 
     if (isVideo(item)) {
-      // Stop and clear any existing image cache
       _cachedImg = null;
-
-      // Pause any previous video
       const prevVid = lightboxContent.querySelector('video');
       if (prevVid) { prevVid.pause(); prevVid.src = ''; }
 
@@ -407,25 +446,20 @@
       lightboxContent.appendChild(wrap);
 
     } else {
-      // Pause/clear any video first
       const prevVid = lightboxContent.querySelector('video');
       if (prevVid) { prevVid.pause(); prevVid.src = ''; }
-
       lightbox.classList.remove('video-mode');
 
       if (animate && _cachedImg) {
-        // Crossfade: fade out → swap src → fade in
         _cachedImg.classList.add('switching');
         _cachedImg.addEventListener('transitionend', function onFade() {
           _cachedImg.removeEventListener('transitionend', onFade);
           _cachedImg.src = item.src;
           _cachedImg.alt = item.label || '';
-          _cachedImg.onload = () => _cachedImg.classList.remove('switching');
-          // Fallback: remove switching even if onload fires before transition
-          _cachedImg.onerror = () => _cachedImg.classList.remove('switching');
+          _cachedImg.onload  = () => _cachedImg && _cachedImg.classList.remove('switching');
+          _cachedImg.onerror = () => _cachedImg && _cachedImg.classList.remove('switching');
         }, { once: true });
       } else {
-        // First open or coming from video — build fresh
         lightboxContent.innerHTML = '';
         const wrap = document.createElement('div');
         wrap.className = 'lightbox-img-wrap';
@@ -443,53 +477,41 @@
     const vid = lightboxContent.querySelector('video');
     if (vid) { vid.pause(); vid.src = ''; }
     lightbox.classList.remove('open', 'video-mode');
-    // Small delay before clearing so fade-out animation plays cleanly
     setTimeout(() => {
       lightboxContent.innerHTML = '';
       _cachedImg = null;
     }, 350);
   }
 
-  // Controls
   lightboxClose.addEventListener('click', closeLightbox);
-
-  lightbox.addEventListener('click', e => {
-    // Close if clicking the backdrop (not the image/video/controls)
-    if (e.target === lightbox) closeLightbox();
-  });
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
 
   lightboxPrev.addEventListener('click', e => {
     e.stopPropagation();
     if (lightboxIndex > 0) renderLightboxItem(lightboxIndex - 1, true);
   });
-
   lightboxNext.addEventListener('click', e => {
     e.stopPropagation();
-    if (lightboxIndex < currentPhotos.length - 1) renderLightboxItem(lightboxIndex + 1, true);
+    if (lightboxIndex < currentPhotos().length - 1) renderLightboxItem(lightboxIndex + 1, true);
   });
 
-  // Touch swipe in lightbox
   let lbTouchX = 0;
-  lightbox.addEventListener('touchstart', e => {
-    lbTouchX = e.touches[0].clientX;
-  }, { passive: true });
-
+  lightbox.addEventListener('touchstart', e => { lbTouchX = e.touches[0].clientX; }, { passive: true });
   lightbox.addEventListener('touchend', e => {
     if (lightbox.classList.contains('video-mode')) return;
     const dx = e.changedTouches[0].clientX - lbTouchX;
     if (Math.abs(dx) > 50) {
-      if (dx < 0 && lightboxIndex < currentPhotos.length - 1) renderLightboxItem(lightboxIndex + 1, true);
-      if (dx > 0 && lightboxIndex > 0)                        renderLightboxItem(lightboxIndex - 1, true);
+      if (dx < 0 && lightboxIndex < currentPhotos().length - 1) renderLightboxItem(lightboxIndex + 1, true);
+      if (dx > 0 && lightboxIndex > 0)                          renderLightboxItem(lightboxIndex - 1, true);
     }
   }, { passive: true });
 
-  // Keyboard
   document.addEventListener('keydown', e => {
     if (!lightbox.classList.contains('open')) return;
     if (e.key === 'Escape') { closeLightbox(); return; }
     if (lightbox.classList.contains('video-mode')) return;
-    if (e.key === 'ArrowLeft'  && lightboxIndex > 0)                        renderLightboxItem(lightboxIndex - 1, true);
-    if (e.key === 'ArrowRight' && lightboxIndex < currentPhotos.length - 1) renderLightboxItem(lightboxIndex + 1, true);
+    if (e.key === 'ArrowLeft'  && lightboxIndex > 0)                          renderLightboxItem(lightboxIndex - 1, true);
+    if (e.key === 'ArrowRight' && lightboxIndex < currentPhotos().length - 1) renderLightboxItem(lightboxIndex + 1, true);
   });
 
 })();
