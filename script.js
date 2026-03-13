@@ -171,8 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
       let frames = 0;
       heroWordmark.style.transition = 'none';
       const glitch = setInterval(() => {
-        const x = (Math.random() - 0.5) * 10;
-        const y = (Math.random() - 0.5) * 4;
+        const x = (Math.random() - 0.5) * 100;
+        const y = (Math.random() - 0.5) * 40;
         heroWordmark.style.transform = `translate(${x}px, ${y}px)`;
         heroWordmark.style.textShadow =
           `${x * 2}px 0 0 rgba(200,168,75,0.9),` +
