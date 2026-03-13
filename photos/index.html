@@ -214,127 +214,285 @@
     },
     ];
 
-    (function () {
-      let currentPhotos = [], lightboxIndex = 0;
-      const collectionsRoot = document.getElementById('collectionsRoot'),
-        eventViewer = document.getElementById('eventViewer'),
-        viewerBack = document.getElementById('viewerBack'),
-        viewerName = document.getElementById('viewerName'),
-        viewerDate = document.getElementById('viewerDate'),
-        viewerCount = document.getElementById('viewerCount'),
-        viewerGrid = document.getElementById('viewerGrid'),
-        lightbox = document.getElementById('lightbox'),
-        lightboxContent = document.getElementById('lightboxContent'),
-        lightboxClose = document.getElementById('lightboxClose'),
-        lightboxPrev = document.getElementById('lightboxPrev'),
-        lightboxNext = document.getElementById('lightboxNext'),
-        lightboxCurrent = document.getElementById('lightboxCurrent'),
-        lightboxTotal = document.getElementById('lightboxTotal'),
-        cursor = document.getElementById('cursor');
+    // ─── Photos page inline script ───────────────────────────────────────────────
+// Replace the (function(){ ... })(); block at the bottom of photos/index.html
+// with this. Keep the EVENTS array above it unchanged.
+// ─────────────────────────────────────────────────────────────────────────────
 
-      function isVideo(item) { return item.type === 'video'; }
+(function () {
+  let currentPhotos = [], lightboxIndex = 0;
 
-      const grid = document.createElement('div');
-      grid.className = 'collections-grid';
-      EVENTS.forEach((event, idx) => {
-        const card = document.createElement('div');
-        card.className = 'collection-card reveal';
-        const coverSrc = event.photos.length > 0 ? event.photos[0].src : '';
-        const vc = event.photos.filter(isVideo).length, pc = event.photos.length - vc;
-        let mp = [];
-        if (pc > 0) mp.push(`${pc} photo${pc !== 1 ? 's' : ''}`);
-        if (vc > 0) mp.push(`${vc} video${vc !== 1 ? 's' : ''}`);
-        card.innerHTML = `<img src="${coverSrc}" alt="${event.name}" loading="lazy">
-        <div class="collection-card-info">
-          <div class="collection-card-index">${String(idx + 1).padStart(2, '0')}</div>
-          <div class="collection-card-name">${event.name}</div>
-          <div class="collection-card-meta"><span>${event.date}</span><span>·</span><span>${mp.join(' · ')}</span></div>
+  const collectionsRoot = document.getElementById('collectionsRoot'),
+    eventViewer         = document.getElementById('eventViewer'),
+    viewerBack          = document.getElementById('viewerBack'),
+    viewerName          = document.getElementById('viewerName'),
+    viewerDate          = document.getElementById('viewerDate'),
+    viewerCount         = document.getElementById('viewerCount'),
+    viewerGrid          = document.getElementById('viewerGrid'),
+    lightbox            = document.getElementById('lightbox'),
+    lightboxContent     = document.getElementById('lightboxContent'),
+    lightboxClose       = document.getElementById('lightboxClose'),
+    lightboxPrev        = document.getElementById('lightboxPrev'),
+    lightboxNext        = document.getElementById('lightboxNext'),
+    lightboxCurrent     = document.getElementById('lightboxCurrent'),
+    lightboxTotal       = document.getElementById('lightboxTotal'),
+    cursor              = document.getElementById('cursor');
+
+  function isVideo(item) { return item.type === 'video'; }
+
+  // ── Scroll lock (mirrors script.js helpers but self-contained) ──────────────
+  let _scrollY = 0;
+  function lockScroll() {
+    _scrollY = window.scrollY;
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top      = `-${_scrollY}px`;
+    document.body.style.width    = '100%';
+  }
+  function unlockScroll() {
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top      = '';
+    document.body.style.width    = '';
+    window.scrollTo(0, _scrollY);
+  }
+
+  // ── Build collections grid ──────────────────────────────────────────────────
+  const grid = document.createElement('div');
+  grid.className = 'collections-grid';
+
+  EVENTS.forEach((event, idx) => {
+    const card = document.createElement('div');
+    card.className = 'collection-card reveal';
+    const coverSrc = event.photos.length > 0 ? event.photos[0].src : '';
+    const vc = event.photos.filter(isVideo).length;
+    const pc = event.photos.length - vc;
+    const mp = [];
+    if (pc > 0) mp.push(`${pc} photo${pc !== 1 ? 's' : ''}`);
+    if (vc > 0) mp.push(`${vc} video${vc !== 1 ? 's' : ''}`);
+
+    card.innerHTML = `
+      <img src="${coverSrc}" alt="${event.name}" loading="lazy">
+      <div class="collection-card-info">
+        <div class="collection-card-index">${String(idx + 1).padStart(2, '0')}</div>
+        <div class="collection-card-name">${event.name}</div>
+        <div class="collection-card-meta">
+          <span>${event.date}</span><span>·</span><span>${mp.join(' · ')}</span>
         </div>
-        <div class="collection-card-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>`;
-        card.addEventListener('click', () => openEventViewer(event));
-        if (cursor) { card.addEventListener('mouseenter', () => cursor.classList.add('expand')); card.addEventListener('mouseleave', () => cursor.classList.remove('expand')); }
-        grid.appendChild(card);
-      });
-      collectionsRoot.appendChild(grid);
+      </div>
+      <div class="collection-card-arrow">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>`;
 
-      const ro = new IntersectionObserver((entries) => { entries.forEach((e, i) => { if (e.isIntersecting) { setTimeout(() => e.target.classList.add('visible'), i * 100); ro.unobserve(e.target); } }); }, { threshold: 0, rootMargin: '0px 0px -40px 0px' });
-      grid.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+    card.addEventListener('click', () => openEventViewer(event));
+    if (cursor) {
+      card.addEventListener('mouseenter', () => cursor.classList.add('expand'));
+      card.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
+    }
+    grid.appendChild(card);
+  });
 
-      function openEventViewer(event) {
-        currentPhotos = event.photos;
-        viewerName.textContent = event.name; viewerDate.textContent = event.date;
-        const vc = event.photos.filter(isVideo).length, pc = event.photos.length - vc;
-        let cp = []; if (pc > 0) cp.push(`${pc} photo${pc !== 1 ? 's' : ''}`); if (vc > 0) cp.push(`${vc} video${vc !== 1 ? 's' : ''}`);
-        viewerCount.textContent = cp.join(' · ');
-        viewerGrid.innerHTML = '';
-        event.photos.forEach((item, i) => {
-          const tile = document.createElement('div'); tile.className = 'event-viewer-item';
-          if (isVideo(item)) {
-            tile.innerHTML = `<div class="video-thumb"><video src="${item.src}"${item.poster ? ` poster="${item.poster}"` : ''} preload="metadata" muted playsinline></video><div class="video-play-badge"><svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg></div><span class="video-type-badge">Video</span></div><div class="overlay"></div>`;
-          } else {
-            tile.innerHTML = `<img src="${item.src}" alt="${item.label || event.name}" loading="lazy"><div class="overlay"></div>`;
-          }
-          tile.addEventListener('click', () => openLightbox(i));
-          if (cursor) { tile.addEventListener('mouseenter', () => cursor.classList.add('expand')); tile.addEventListener('mouseleave', () => cursor.classList.remove('expand')); }
-          viewerGrid.appendChild(tile);
-        });
-        eventViewer.classList.add('open'); eventViewer.scrollTop = 0; document.body.style.overflow = 'hidden';
+  collectionsRoot.appendChild(grid);
+
+  // Scroll-reveal for collection cards
+  const ro = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 100);
+        ro.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0, rootMargin: '0px 0px -40px 0px' });
+  grid.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+  // ── Event Viewer ────────────────────────────────────────────────────────────
+  function openEventViewer(event) {
+    currentPhotos = event.photos;
+    viewerName.textContent = event.name;
+    viewerDate.textContent = event.date;
+
+    const vc = event.photos.filter(isVideo).length;
+    const pc = event.photos.length - vc;
+    const cp = [];
+    if (pc > 0) cp.push(`${pc} photo${pc !== 1 ? 's' : ''}`);
+    if (vc > 0) cp.push(`${vc} video${vc !== 1 ? 's' : ''}`);
+    viewerCount.textContent = cp.join(' · ');
+
+    viewerGrid.innerHTML = '';
+
+    event.photos.forEach((item, i) => {
+      const tile = document.createElement('div');
+      tile.className = 'event-viewer-item';
+
+      if (isVideo(item)) {
+        tile.innerHTML = `
+          <div class="video-thumb">
+            <video src="${item.src}"${item.poster ? ` poster="${item.poster}"` : ''} preload="metadata" muted playsinline></video>
+            <div class="video-play-badge">
+              <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
+            </div>
+            <span class="video-type-badge">Video</span>
+          </div>
+          <div class="overlay"></div>`;
+      } else {
+        tile.innerHTML = `
+          <img src="${item.src}" alt="${item.label || event.name}" loading="lazy">
+          <div class="overlay"></div>`;
       }
 
-      function closeEventViewer() { eventViewer.classList.remove('open'); document.body.style.overflow = ''; viewerGrid.querySelectorAll('video').forEach(v => v.pause()); }
-      viewerBack.addEventListener('click', closeEventViewer);
+      tile.addEventListener('click', () => openLightbox(i));
+      if (cursor) {
+        tile.addEventListener('mouseenter', () => cursor.classList.add('expand'));
+        tile.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
+      }
+      viewerGrid.appendChild(tile);
+    });
 
-      function openLightbox(index) { lightboxIndex = index; lightboxTotal.textContent = currentPhotos.length; showLightboxItem(index); lightbox.classList.add('open'); }
+    eventViewer.classList.add('open');
+    eventViewer.scrollTop = 0;
+    lockScroll();
+  }
 
-      function showLightboxItem(index) {
-        lightboxIndex = index; const item = currentPhotos[index];
-        const pv = lightboxContent.querySelector('video'); if (pv) { pv.pause(); pv.src = ''; }
+  function closeEventViewer() {
+    // Pause any playing videos in the grid before closing
+    viewerGrid.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; });
+    eventViewer.classList.remove('open');
+    unlockScroll();
+  }
+
+  viewerBack.addEventListener('click', closeEventViewer);
+
+  // ── Lightbox ────────────────────────────────────────────────────────────────
+  function openLightbox(index) {
+    lightboxIndex = index;
+    lightboxTotal.textContent = currentPhotos.length;
+    renderLightboxItem(index, false); // no fade on first open
+    lightbox.classList.add('open');
+  }
+
+  // imgEl is reused between navigations to avoid DOM thrashing
+  let _cachedImg = null;
+
+  function renderLightboxItem(index, animate) {
+    lightboxIndex = index;
+    const item = currentPhotos[index];
+
+    // Update counter
+    lightboxCurrent.textContent = index + 1;
+
+    // Nav opacity — CSS handles pointer-events via attribute selector
+    lightboxPrev.style.opacity = index === 0 ? '0.2' : '1';
+    lightboxNext.style.opacity = index === currentPhotos.length - 1 ? '0.2' : '1';
+
+    if (isVideo(item)) {
+      // Stop and clear any existing image cache
+      _cachedImg = null;
+
+      // Pause any previous video
+      const prevVid = lightboxContent.querySelector('video');
+      if (prevVid) { prevVid.pause(); prevVid.src = ''; }
+
+      lightbox.classList.add('video-mode');
+      lightboxContent.innerHTML = '';
+
+      const wrap = document.createElement('div');
+      wrap.className = 'lightbox-video-wrap';
+      const vid = document.createElement('video');
+      vid.src         = item.src;
+      vid.controls    = true;
+      vid.autoplay    = true;
+      vid.playsinline = true;
+      if (item.poster) vid.poster = item.poster;
+      wrap.appendChild(vid);
+      lightboxContent.appendChild(wrap);
+
+    } else {
+      // Pause/clear any video first
+      const prevVid = lightboxContent.querySelector('video');
+      if (prevVid) { prevVid.pause(); prevVid.src = ''; }
+
+      lightbox.classList.remove('video-mode');
+
+      if (animate && _cachedImg) {
+        // Crossfade: fade out → swap src → fade in
+        _cachedImg.classList.add('switching');
+        _cachedImg.addEventListener('transitionend', function onFade() {
+          _cachedImg.removeEventListener('transitionend', onFade);
+          _cachedImg.src = item.src;
+          _cachedImg.alt = item.label || '';
+          _cachedImg.onload = () => _cachedImg.classList.remove('switching');
+          // Fallback: remove switching even if onload fires before transition
+          _cachedImg.onerror = () => _cachedImg.classList.remove('switching');
+        }, { once: true });
+      } else {
+        // First open or coming from video — build fresh
         lightboxContent.innerHTML = '';
-        if (isVideo(item)) {
-          lightbox.classList.add('video-mode');
-          const wrap = document.createElement('div'); wrap.className = 'lightbox-video-wrap';
-          const vid = document.createElement('video'); vid.src = item.src; vid.controls = true; vid.autoplay = true; vid.playsinline = true;
-          if (item.poster) vid.poster = item.poster; wrap.appendChild(vid); lightboxContent.appendChild(wrap);
-        } else {
-          lightbox.classList.remove('video-mode');
-          const wrap = document.createElement('div'); wrap.className = 'lightbox-img-wrap';
-          const img = document.createElement('img'); img.src = item.src; img.alt = item.label || ''; img.classList.add('switching');
-          wrap.appendChild(img); lightboxContent.appendChild(wrap);
-          requestAnimationFrame(() => img.classList.remove('switching'));
-        }
-        lightboxCurrent.textContent = index + 1;
-        lightboxPrev.style.opacity = index === 0 ? '0.2' : '1';
-        lightboxNext.style.opacity = index === currentPhotos.length - 1 ? '0.2' : '1';
+        const wrap = document.createElement('div');
+        wrap.className = 'lightbox-img-wrap';
+        const img = document.createElement('img');
+        img.src = item.src;
+        img.alt = item.label || '';
+        wrap.appendChild(img);
+        lightboxContent.appendChild(wrap);
+        _cachedImg = img;
       }
+    }
+  }
 
-      function closeLightbox() { const v = lightboxContent.querySelector('video'); if (v) { v.pause(); v.src = ''; } lightbox.classList.remove('open', 'video-mode'); lightboxContent.innerHTML = ''; }
+  function closeLightbox() {
+    const vid = lightboxContent.querySelector('video');
+    if (vid) { vid.pause(); vid.src = ''; }
+    lightbox.classList.remove('open', 'video-mode');
+    // Small delay before clearing so fade-out animation plays cleanly
+    setTimeout(() => {
+      lightboxContent.innerHTML = '';
+      _cachedImg = null;
+    }, 350);
+  }
 
-      lightboxClose.addEventListener('click', closeLightbox);
-      lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
-      lightboxPrev.addEventListener('click', e => { e.stopPropagation(); if (lightboxIndex > 0) showLightboxItem(lightboxIndex - 1); });
-      lightboxNext.addEventListener('click', e => { e.stopPropagation(); if (lightboxIndex < currentPhotos.length - 1) showLightboxItem(lightboxIndex + 1); });
+  // Controls
+  lightboxClose.addEventListener('click', closeLightbox);
 
-      let lbTsX = 0;
-      lightbox.addEventListener('touchstart', e => { lbTsX = e.touches[0].clientX; }, { passive: true });
-      lightbox.addEventListener('touchend', e => {
-        if (lightbox.classList.contains('video-mode')) return;
-        const dx = e.changedTouches[0].clientX - lbTsX;
-        if (Math.abs(dx) > 50) {
-          if (dx < 0 && lightboxIndex < currentPhotos.length - 1) showLightboxItem(lightboxIndex + 1);
-          if (dx > 0 && lightboxIndex > 0) showLightboxItem(lightboxIndex - 1);
-        }
-      }, { passive: true });
+  lightbox.addEventListener('click', e => {
+    // Close if clicking the backdrop (not the image/video/controls)
+    if (e.target === lightbox) closeLightbox();
+  });
 
-      document.addEventListener('keydown', e => {
-        if (lightbox.classList.contains('open')) {
-          if (lightbox.classList.contains('video-mode')) { if (e.key === 'Escape') closeLightbox(); return; }
-          if (e.key === 'ArrowLeft' && lightboxIndex > 0) showLightboxItem(lightboxIndex - 1);
-          if (e.key === 'ArrowRight' && lightboxIndex < currentPhotos.length - 1) showLightboxItem(lightboxIndex + 1);
-          if (e.key === 'Escape') closeLightbox();
-        }
-      });
+  lightboxPrev.addEventListener('click', e => {
+    e.stopPropagation();
+    if (lightboxIndex > 0) renderLightboxItem(lightboxIndex - 1, true);
+  });
 
-    })();
+  lightboxNext.addEventListener('click', e => {
+    e.stopPropagation();
+    if (lightboxIndex < currentPhotos.length - 1) renderLightboxItem(lightboxIndex + 1, true);
+  });
+
+  // Touch swipe in lightbox
+  let lbTouchX = 0;
+  lightbox.addEventListener('touchstart', e => {
+    lbTouchX = e.touches[0].clientX;
+  }, { passive: true });
+
+  lightbox.addEventListener('touchend', e => {
+    if (lightbox.classList.contains('video-mode')) return;
+    const dx = e.changedTouches[0].clientX - lbTouchX;
+    if (Math.abs(dx) > 50) {
+      if (dx < 0 && lightboxIndex < currentPhotos.length - 1) renderLightboxItem(lightboxIndex + 1, true);
+      if (dx > 0 && lightboxIndex > 0)                        renderLightboxItem(lightboxIndex - 1, true);
+    }
+  }, { passive: true });
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape') { closeLightbox(); return; }
+    if (lightbox.classList.contains('video-mode')) return;
+    if (e.key === 'ArrowLeft'  && lightboxIndex > 0)                        renderLightboxItem(lightboxIndex - 1, true);
+    if (e.key === 'ArrowRight' && lightboxIndex < currentPhotos.length - 1) renderLightboxItem(lightboxIndex + 1, true);
+  });
+
+})();
   </script>
 </body>
 </html>

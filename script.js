@@ -7,6 +7,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const isTouchDevice = () => window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
+  // ─── Scroll-lock helpers (preserve scroll position) ──
+  let _lockScrollY = 0;
+  function lockScroll() {
+    _lockScrollY = window.scrollY;
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${_lockScrollY}px`;
+    document.body.style.width = '100%';
+  }
+  function unlockScroll() {
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, _lockScrollY);
+  }
+
   // ─── Custom Cursor (desktop only) ────────
   const cursor = document.getElementById('cursor');
   const ring   = document.getElementById('cursorRing');
@@ -44,18 +61,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const burger        = document.getElementById('burger');
   const sideDrawer    = document.getElementById('sideDrawer');
   const drawerOverlay = document.getElementById('drawerOverlay');
+  const nav           = document.querySelector('nav');
 
   function openDrawer() {
     burger.classList.add('open');
     sideDrawer.classList.add('open');
     drawerOverlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    // Show nav solidly when drawer is open (counteracts the hide-on-scroll)
+    if (nav) {
+      nav.style.transform  = 'translateY(0)';
+      nav.style.background = 'rgba(0,0,0,0.92)';
+    }
+    lockScroll();
   }
   function closeDrawer() {
     burger.classList.remove('open');
     sideDrawer.classList.remove('open');
     drawerOverlay.classList.remove('open');
-    document.body.style.overflow = '';
+    if (nav) nav.style.background = '';
+    unlockScroll();
   }
 
   if (burger && sideDrawer) {
@@ -168,19 +192,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // ─── Nav hide on scroll down, show on scroll up ──
-  const nav = document.querySelector('nav');
   if (nav) {
     let lastScroll = 0;
     window.addEventListener('scroll', () => {
       const curr = window.scrollY;
-      // Only hide if drawer is closed
-      if (!sideDrawer || !sideDrawer.classList.contains('open')) {
-        if (curr > 120 && curr > lastScroll) {
-          nav.style.transform  = 'translateY(-100%)';
-          nav.style.transition = 'transform 0.4s ease';
-        } else {
-          nav.style.transform = 'translateY(0)';
-        }
+      // Never hide nav while drawer is open
+      if (sideDrawer && sideDrawer.classList.contains('open')) return;
+      if (curr > 120 && curr > lastScroll) {
+        nav.style.transform  = 'translateY(-100%)';
+        nav.style.transition = 'transform 0.4s ease';
+      } else {
+        nav.style.transform  = 'translateY(0)';
+        nav.style.transition = 'transform 0.3s ease';
       }
       lastScroll = curr;
     }, { passive: true });
