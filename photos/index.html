@@ -215,15 +215,6 @@
     ];
 
     // ─── Photos page inline script ───────────────────────────────────────────────
-// Replace the (function(){ ... })(); block at the bottom of photos/index.html
-// with this. Keep the EVENTS array above it unchanged.
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ─── Photos page inline script ───────────────────────────────────────────────
-// Replace the (function(){ ... })(); block at the bottom of photos/index.html
-// with this. Keep the EVENTS array above it unchanged.
-// ─────────────────────────────────────────────────────────────────────────────
-
 (function () {
   let currentEventIndex = 0, lightboxIndex = 0;
 
@@ -241,11 +232,12 @@
     lightboxNext        = document.getElementById('lightboxNext'),
     lightboxCurrent     = document.getElementById('lightboxCurrent'),
     lightboxTotal       = document.getElementById('lightboxTotal'),
-    cursor              = document.getElementById('cursor');
+    cursor              = document.getElementById('cursor'),
+    nav                 = document.querySelector('nav');
 
   function isVideo(item) { return item.type === 'video'; }
 
-  // ── Scroll lock ─────────────────────────────────────────────────────────────
+  // ── Scroll lock (uses shared state with script.js via body attribute) ───────
   let _scrollY = 0;
   function lockScroll() {
     _scrollY = window.scrollY;
@@ -253,21 +245,26 @@
     document.body.style.position = 'fixed';
     document.body.style.top      = `-${_scrollY}px`;
     document.body.style.width    = '100%';
+    document.body.dataset.viewerOpen = 'true';
+    // Keep nav visible and stable while viewer is open
+    if (nav) {
+      nav.style.transform  = 'translateY(0)';
+      nav.style.transition = 'none';
+    }
   }
   function unlockScroll() {
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top      = '';
     document.body.style.width    = '';
+    delete document.body.dataset.viewerOpen;
+    if (nav) nav.style.transition = '';
     window.scrollTo(0, _scrollY);
   }
 
-  // ── Pre-render all event grids at page load ─────────────────────────────────
-  // Each event gets its own hidden grid fragment built immediately so images
-  // start fetching in the background — no waiting for a click.
-  const prebuiltGrids = [];
-
-  EVENTS.forEach((event, eventIdx) => {
+  // ── Build event grid on-demand (lazy loading) ───────────────────────────────
+  // Only build the grid when user clicks an event — much faster initial load
+  function buildEventGrid(event, eventIdx) {
     const frag = document.createDocumentFragment();
 
     event.photos.forEach((item, photoIdx) => {
@@ -277,7 +274,7 @@
       if (isVideo(item)) {
         tile.innerHTML = `
           <div class="video-thumb">
-            <video src="${item.src}"${item.poster ? ` poster="${item.poster}"` : ''} preload="metadata" muted playsinline></video>
+            <video${item.poster ? ` poster="${item.poster}"` : ''} preload="none" muted playsinline data-src="${item.src}"></video>
             <div class="video-play-badge">
               <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
             </div>
@@ -287,10 +284,10 @@
       } else {
         const img = document.createElement('img');
         img.alt = item.label || event.name;
-        // Most-recent event (index 0): load eagerly so it's ready instantly.
-        // Older events: lazy — browser still starts fetching them in background.
-        img.loading = eventIdx === 0 ? 'eager' : 'lazy';
-        img.src = item.src;
+        img.loading = 'lazy';
+        img.dataset.src = item.src;
+        // Use a tiny placeholder, load real src via IntersectionObserver
+        img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
         const overlay = document.createElement('div');
         overlay.className = 'overlay';
@@ -308,14 +305,35 @@
       frag.appendChild(tile);
     });
 
-    // Append into a real hidden container so the browser actually fetches images.
-    const hiddenContainer = document.createElement('div');
-    hiddenContainer.style.cssText = 'display:none;position:absolute;pointer-events:none;';
-    hiddenContainer.appendChild(frag);
-    document.body.appendChild(hiddenContainer);
+    return frag;
+  }
 
-    prebuiltGrids.push({ event, container: hiddenContainer });
-  });
+  // ── Lazy load images as they scroll into view ───────────────────────────────
+  let lazyObserver = null;
+  function setupLazyLoading() {
+    if (lazyObserver) lazyObserver.disconnect();
+
+    lazyObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          if (el.tagName === 'IMG' && el.dataset.src) {
+            el.src = el.dataset.src;
+            delete el.dataset.src;
+          } else if (el.tagName === 'VIDEO' && el.dataset.src) {
+            el.src = el.dataset.src;
+            el.preload = 'metadata';
+            delete el.dataset.src;
+          }
+          lazyObserver.unobserve(el);
+        }
+      });
+    }, { root: viewerGrid, rootMargin: '200px 0px', threshold: 0 });
+
+    viewerGrid.querySelectorAll('img[data-src], video[data-src]').forEach(el => {
+      lazyObserver.observe(el);
+    });
+  }
 
   // ── Build collections grid ──────────────────────────────────────────────────
   const grid = document.createElement('div');
@@ -332,7 +350,7 @@
     if (vc > 0) mp.push(`${vc} video${vc !== 1 ? 's' : ''}`);
 
     card.innerHTML = `
-      <img src="${coverSrc}" alt="${event.name}" loading="eager">
+      <img src="${coverSrc}" alt="${event.name}" loading="lazy">
       <div class="collection-card-info">
         <div class="collection-card-index">${String(idx + 1).padStart(2, '0')}</div>
         <div class="collection-card-name">${event.name}</div>
@@ -366,7 +384,7 @@
 
   // ── Event Viewer ────────────────────────────────────────────────────────────
   function openEventViewer(idx) {
-    const { event, container } = prebuiltGrids[idx];
+    const event = EVENTS[idx];
     currentEventIndex = idx;
 
     viewerName.textContent = event.name;
@@ -378,26 +396,26 @@
     if (vc > 0) cp.push(`${vc} video${vc !== 1 ? 's' : ''}`);
     viewerCount.textContent = cp.join(' · ');
 
-    // Move pre-built tiles directly into the viewer — images already decoded
+    // Build grid on-demand — only load images when opening this event
     viewerGrid.innerHTML = '';
-    while (container.firstChild) {
-      viewerGrid.appendChild(container.firstChild);
-    }
+    viewerGrid.appendChild(buildEventGrid(event, idx));
 
     eventViewer.classList.add('open');
     eventViewer.scrollTop = 0;
     lockScroll();
+
+    // Start lazy loading images as they scroll into view
+    requestAnimationFrame(() => setupLazyLoading());
   }
 
   function closeEventViewer() {
-    const { container } = prebuiltGrids[currentEventIndex];
-
-    viewerGrid.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; });
-
-    // Move tiles back into hidden container — keeps images decoded for next open
-    while (viewerGrid.firstChild) {
-      container.appendChild(viewerGrid.firstChild);
+    if (lazyObserver) {
+      lazyObserver.disconnect();
+      lazyObserver = null;
     }
+
+    viewerGrid.querySelectorAll('video').forEach(v => { v.pause(); v.src = ''; });
+    viewerGrid.innerHTML = '';
 
     eventViewer.classList.remove('open');
     unlockScroll();

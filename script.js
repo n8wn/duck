@@ -196,8 +196,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastScroll = 0;
     window.addEventListener('scroll', () => {
       const curr = window.scrollY;
-      // Never hide nav while drawer is open
+      // Never hide nav while drawer or event viewer is open
       if (sideDrawer && sideDrawer.classList.contains('open')) return;
+      if (document.body.dataset.viewerOpen) return;
       if (curr > 120 && curr > lastScroll) {
         nav.style.transform  = 'translateY(-100%)';
         nav.style.transition = 'transform 0.4s ease';
